@@ -30,7 +30,7 @@ Claude Code stores session data as JSONL files. This viewer reconstructs every i
 
 ## Screenshots
 
-*(Coming soon)*
+![Claude Session Viewer](screenshots/screenshot.png)
 
 ## Requirements
 
