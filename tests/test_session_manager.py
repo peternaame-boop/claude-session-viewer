@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from claude_session_viewer.services.session_manager import SessionManager
+from helpers import wait_for_worker
 
 
 @pytest.fixture
@@ -78,6 +79,7 @@ class TestSelectSession:
         sid = sessions[0].id
 
         manager.select_session(sid)
+        wait_for_worker(manager)
         chunks = manager.get_chunks(sid)
         assert len(chunks) > 0
 

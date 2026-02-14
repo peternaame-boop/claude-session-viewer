@@ -18,13 +18,31 @@ QQC2.ScrollView {
         id: chatList
         model: ConversationModel
         clip: true
-        spacing: Kirigami.Units.largeSpacing
-        cacheBuffer: 2000
+        spacing: Kirigami.Units.smallSpacing
+        cacheBuffer: 600
 
         topMargin: Kirigami.Units.gridUnit
         bottomMargin: Kirigami.Units.gridUnit
         leftMargin: Kirigami.Units.gridUnit
         rightMargin: Kirigami.Units.gridUnit
+
+        // "Load earlier" header when pagination is active
+        header: Item {
+            width: chatList.width - chatList.leftMargin - chatList.rightMargin
+            height: ConversationModel.canLoadEarlier ? loadEarlierBtn.height + Kirigami.Units.largeSpacing : 0
+            visible: ConversationModel.canLoadEarlier
+
+            QQC2.Button {
+                id: loadEarlierBtn
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: Kirigami.Units.smallSpacing
+                text: "Load earlier messages (" + chatList.count + " of " + ConversationModel.totalChunkCount + " shown)"
+                icon.name: "arrow-up"
+                flat: true
+                onClicked: ConversationModel.load_earlier()
+            }
+        }
 
         delegate: Loader {
             id: chunkLoader

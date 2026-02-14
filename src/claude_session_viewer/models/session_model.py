@@ -68,6 +68,15 @@ class SessionModel(QAbstractListModel):
         self._sessions = list(sessions)
         self.endResetModel()
 
+    def update_session(self, session_id: str, is_ongoing: bool):
+        """Update a single session's is_ongoing status with targeted dataChanged."""
+        for i, session in enumerate(self._sessions):
+            if session.id == session_id:
+                session.is_ongoing = is_ongoing
+                idx = self.index(i, 0)
+                self.dataChanged.emit(idx, idx, [self.IsOngoingRole])
+                return
+
     @staticmethod
     def _format_relative_time(timestamp: float) -> str:
         """Format a timestamp as a human-readable relative time."""

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-session-viewer"
-version = "1.0.0-dev"
+version = "1.1.0"
 description = "Native KDE Plasma 6 viewer for Claude Code session logs"
 requires-python = ">=3.12"
 license = {text = "MIT"}
@@ -36,7 +36,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "tests"]
 addopts = "-v --tb=short"
 
 [tool.coverage.run]

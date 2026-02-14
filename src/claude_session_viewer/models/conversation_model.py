@@ -1,6 +1,6 @@
 """QAbstractListModel for conversation chunks displayed in the chat view."""
 
-from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt
+from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt, Signal, Slot, Property
 
 from claude_session_viewer.types import Chunk, ChunkType, ToolExecution
 from claude_session_viewer.utils.content_sanitizer import sanitize_content, extract_user_text
@@ -11,9 +11,16 @@ from claude_session_viewer.utils.diff_generator import (
     strip_line_numbers,
 )
 
+# Max chunks exposed to QML at once. Keeps scrollbar/delegate creation fast.
+_PAGE_SIZE = 200
+
 
 class ConversationModel(QAbstractListModel):
-    """Exposes conversation Chunks to QML."""
+    """Exposes conversation Chunks to QML with virtual pagination.
+
+    Only the last _PAGE_SIZE chunks are exposed to QML by default.
+    Earlier chunks are loaded on demand via load_earlier().
+    """
 
     ChunkIdRole = Qt.UserRole + 1
     ChunkTypeRole = Qt.UserRole + 2
@@ -35,9 +42,14 @@ class ConversationModel(QAbstractListModel):
     ProcessesRole = Qt.UserRole + 18
     PhaseNumberRole = Qt.UserRole + 19
 
+    pagination_changed = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._chunks: list[Chunk] = []
+        self._all_chunks: list[Chunk] = []  # full chunk list
+        self._chunks: list[Chunk] = []       # visible window (tail of _all_chunks)
+        self._offset: int = 0                # index into _all_chunks where _chunks starts
+        self._tool_exec_cache: dict[str, list[dict]] = {}  # chunk_id -> formatted tools
 
     def roleNames(self):
         return {
@@ -92,7 +104,9 @@ class ConversationModel(QAbstractListModel):
         elif role == self.ToolCountRole:
             return len(chunk.tool_executions)
         elif role == self.ToolExecutionsRole:
-            return self._format_tool_executions(chunk.tool_executions)
+            if chunk.id not in self._tool_exec_cache:
+                self._tool_exec_cache[chunk.id] = self._format_tool_executions(chunk.tool_executions)
+            return self._tool_exec_cache[chunk.id]
         elif role == self.TokenCountRole:
             return chunk.metrics.total_tokens if chunk.metrics else 0
         elif role == self.DurationRole:
@@ -121,11 +135,107 @@ class ConversationModel(QAbstractListModel):
             return chunk.context_stats.phase_number if chunk.context_stats else 0
         return None
 
+    # ------------------------------------------------------------------
+    # Pagination properties for QML
+    # ------------------------------------------------------------------
+
+    def _get_total_chunk_count(self) -> int:
+        return len(self._all_chunks)
+
+    totalChunkCount = Property(int, _get_total_chunk_count, notify=pagination_changed)
+
+    def _get_can_load_earlier(self) -> bool:
+        return self._offset > 0
+
+    canLoadEarlier = Property(bool, _get_can_load_earlier, notify=pagination_changed)
+
+    @Slot()
+    def load_earlier(self):
+        """Prepend an earlier page of chunks to the visible window."""
+        if self._offset <= 0:
+            return
+        new_start = max(0, self._offset - _PAGE_SIZE)
+        prepend = self._all_chunks[new_start:self._offset]
+        if not prepend:
+            return
+        self.beginInsertRows(QModelIndex(), 0, len(prepend) - 1)
+        self._chunks = prepend + self._chunks
+        self._offset = new_start
+        self.endInsertRows()
+        self.pagination_changed.emit()
+
+    # ------------------------------------------------------------------
+    # Chunk setters
+    # ------------------------------------------------------------------
+
     def set_chunks(self, chunks: list[Chunk]):
-        """Replace the entire chunk list."""
+        """Replace the entire chunk list, showing the last PAGE_SIZE."""
         self.beginResetModel()
-        self._chunks = list(chunks)
+        self._all_chunks = list(chunks)
+        self._offset = max(0, len(self._all_chunks) - _PAGE_SIZE)
+        self._chunks = self._all_chunks[self._offset:]
+        self._tool_exec_cache.clear()
         self.endResetModel()
+        self.pagination_changed.emit()
+
+    def update_chunks(self, chunks: list[Chunk]):
+        """Incrementally update chunks from a live tailing update.
+
+        Compares the visible window against the new tail of chunks.
+        Appends new chunks and updates the last common chunk.
+        """
+        new_all = list(chunks)
+
+        if not self._chunks:
+            self.set_chunks(new_all)
+            return
+
+        if not new_all:
+            self.set_chunks(new_all)
+            return
+
+        # The visible window corresponds to _all_chunks[_offset:].
+        # New chunks from live tailing are appended at the end.
+        # Find common prefix in the visible window.
+        new_visible = new_all[self._offset:] if self._offset < len(new_all) else new_all[-_PAGE_SIZE:]
+
+        common = 0
+        for i in range(min(len(self._chunks), len(new_visible))):
+            if self._chunks[i].id == new_visible[i].id:
+                common = i + 1
+            else:
+                break
+
+        if common == 0 and len(self._chunks) > 0 and len(new_visible) > 0:
+            self.set_chunks(new_all)
+            return
+
+        self._all_chunks = new_all
+
+        # Update the last common chunk in-place
+        if common > 0:
+            self._chunks[common - 1] = new_visible[common - 1]
+            # Invalidate tool cache for modified chunk
+            old_id = self._chunks[common - 1].id
+            self._tool_exec_cache.pop(old_id, None)
+            changed_idx = self.index(common - 1, 0)
+            self.dataChanged.emit(changed_idx, changed_idx, [])
+
+        # Remove excess old chunks
+        if len(self._chunks) > common:
+            self.beginRemoveRows(QModelIndex(), common, len(self._chunks) - 1)
+            self._chunks = self._chunks[:common]
+            self.endRemoveRows()
+
+        # Append new chunks
+        if len(new_visible) > common:
+            first_new = common
+            last_new = len(new_visible) - 1
+            self.beginInsertRows(QModelIndex(), first_new, last_new)
+            self._chunks.extend(new_visible[common:])
+            self.endInsertRows()
+
+        self.pagination_changed.emit()
 
     def _extract_user_text(self, chunk: Chunk) -> str:
         """Extract clean user text from chunk messages."""

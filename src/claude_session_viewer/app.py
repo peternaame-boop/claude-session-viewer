@@ -86,6 +86,14 @@ def run() -> int:
     manager.conversation_loaded.connect(
         lambda sid: conversation_model.set_chunks(manager.get_chunks(sid))
     )
+    manager.conversation_updated.connect(
+        lambda sid: conversation_model.update_chunks(manager.get_chunks(sid))
+    )
+
+    # Wire active session tracking -> session model
+    manager.session_activity_changed.connect(
+        lambda sid, active: session_model.update_session(sid, active)
+    )
 
     # Wire search engine: results -> model
     search_engine.results_ready.connect(search_result_model.set_results)

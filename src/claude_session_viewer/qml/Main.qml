@@ -17,6 +17,14 @@ Kirigami.ApplicationWindow {
     minimumWidth: 600
     minimumHeight: 400
 
+    // Push a page, replacing any secondary page already on the stack
+    function pushUniquePage(component) {
+        if (root.pageStack.depth > 1) {
+            root.pageStack.pop();
+        }
+        root.pageStack.push(component);
+    }
+
     // --- Keyboard Shortcuts ---
     Shortcut { sequence: "Ctrl+K"; onActivated: commandPalette.open() }
     Shortcut { sequence: "Ctrl+B"; onActivated: drawer.collapsed = !drawer.collapsed }
@@ -74,6 +82,15 @@ Kirigami.ApplicationWindow {
                     QQC2.ToolTip.visible: hovered
                 }
 
+                QQC2.ToolButton {
+                    icon.name: checked ? "media-playback-start" : "media-playback-pause"
+                    checkable: true
+                    checked: SessionManager.followActive
+                    onToggled: SessionManager.set_follow_active(checked)
+                    QQC2.ToolTip.text: checked ? "Following active session" : "Follow active session"
+                    QQC2.ToolTip.visible: hovered
+                }
+
                 Item { Layout.fillWidth: true }
 
                 // SSH connection indicator
@@ -84,7 +101,7 @@ Kirigami.ApplicationWindow {
                         if (SshManager.connected) {
                             SshManager.disconnect_ssh();
                         } else {
-                            root.pageStack.push(settingsPageComponent);
+                            root.pushUniquePage(settingsPageComponent);
                         }
                     }
                     QQC2.ToolTip.text: SshManager.connected
@@ -95,14 +112,14 @@ Kirigami.ApplicationWindow {
 
                 QQC2.ToolButton {
                     icon.name: "notifications"
-                    onClicked: root.pageStack.push(notificationsPageComponent)
+                    onClicked: root.pushUniquePage(notificationsPageComponent)
                     QQC2.ToolTip.text: "Notifications"
                     QQC2.ToolTip.visible: hovered
                 }
 
                 QQC2.ToolButton {
                     icon.name: "configure"
-                    onClicked: root.pageStack.push(settingsPageComponent)
+                    onClicked: root.pushUniquePage(settingsPageComponent)
                     QQC2.ToolTip.text: "Settings"
                     QQC2.ToolTip.visible: hovered
                 }

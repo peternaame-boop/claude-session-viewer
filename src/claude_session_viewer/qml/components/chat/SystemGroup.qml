@@ -9,6 +9,8 @@ Item {
     property string systemText: ""
     property string timestamp: ""
 
+    property bool expanded: false
+
     implicitHeight: systemCard.height
     implicitWidth: parent ? parent.width : 400
 
@@ -48,7 +50,18 @@ Item {
                     opacity: 0.6
                 }
 
-                Item { Layout.fillWidth: true }
+                // Preview when collapsed
+                QQC2.Label {
+                    visible: !systemRoot.expanded
+                    Layout.fillWidth: true
+                    text: "\u2014 " + systemRoot.systemText.substring(0, 100).replace(/\n/g, " ")
+                    elide: Text.ElideRight
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.4
+                    maximumLineCount: 1
+                }
+
+                Item { Layout.fillWidth: systemRoot.expanded }
 
                 QQC2.Label {
                     text: systemRoot.timestamp ? new Date(systemRoot.timestamp).toLocaleTimeString(Qt.locale(), "HH:mm") : ""
@@ -56,16 +69,32 @@ Item {
                     opacity: 0.5
                     visible: systemRoot.timestamp !== ""
                 }
+
+                Kirigami.Icon {
+                    source: systemRoot.expanded ? "arrow-up" : "arrow-down"
+                    implicitWidth: Kirigami.Units.iconSizes.small
+                    implicitHeight: Kirigami.Units.iconSizes.small
+                    opacity: 0.5
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: systemRoot.expanded = !systemRoot.expanded
+                    cursorShape: Qt.PointingHandCursor
+                }
             }
 
-            QQC2.Label {
+            // Expanded content — lazy loaded
+            Loader {
                 Layout.fillWidth: true
-                text: systemRoot.systemText
-                wrapMode: Text.Wrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.7
-                maximumLineCount: 10
-                elide: Text.ElideRight
+                active: systemRoot.expanded
+                sourceComponent: QQC2.Label {
+                    Layout.fillWidth: true
+                    text: systemRoot.systemText
+                    wrapMode: Text.Wrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.7
+                }
             }
         }
     }

@@ -58,6 +58,19 @@ class FileWatcher(QObject):
                 self._debounce_timers[file_path].stop()
                 del self._debounce_timers[file_path]
 
+    def watch_all_project_dirs(self, project_dirs: list[str]):
+        """Watch all project directories for file changes (active session detection)."""
+        # Remove previously watched project dirs (keep root + session files)
+        current_dirs = set(self._watcher.directories())
+        for d in current_dirs:
+            if d != self._projects_root:
+                self._watcher.removePath(d)
+
+        # Add all project dirs
+        for d in project_dirs:
+            if d and d != self._projects_root:
+                self._watcher.addPath(d)
+
     def _on_file_changed(self, path: str):
         """Handle file change with 100ms debounce."""
         # Qt removes the file from the watcher after emitting fileChanged
