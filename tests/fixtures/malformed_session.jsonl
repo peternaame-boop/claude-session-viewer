@@ -1,0 +1,8 @@
+{"uuid":"msg-m01","parentUuid":null,"type":"user","message":{"role":"user","content":"First valid message."},"timestamp":"2026-02-13T12:00:00.000Z","cwd":"/home/wiz/projects/myapp","isMeta":false,"isSidechain":false,"isCompactSummary":false}
+this is not valid json at all
+{"uuid":"msg-m02","parentUuid":"msg-m01","type":"assistant","message":{"role":"assistant","content":"Second valid message.","model":"claude-sonnet-4-5-20250929","usage":{"input_tokens":100,"output_tokens":10}},"timestamp":"2026-02-13T12:00:05.000Z","cwd":"/home/wiz/projects/myapp","isMeta":false}
+{"incomplete json": true, "uuid":
+{"uuid":"msg-m03","parentUuid":"msg-m02","type":"user","message":{"role":"user","content":"Third valid message after malformed lines."},"timestamp":"2026-02-13T12:00:10.000Z","cwd":"/home/wiz/projects/myapp","isMeta":false,"isSidechain":false,"isCompactSummary":false}
+42
+null
+{"uuid":"msg-m04","parentUuid":"msg-m03","type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Response after malformed lines."}],"model":"claude-sonnet-4-5-20250929","usage":{"input_tokens":200,"output_tokens":20}},"timestamp":"2026-02-13T12:00:15.000Z","cwd":"/home/wiz/projects/myapp","isMeta":false}

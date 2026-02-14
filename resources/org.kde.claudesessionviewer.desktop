@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Claude Session Viewer
+GenericName=Session Log Viewer
+Comment=Native KDE viewer for Claude Code session logs
+Exec=claude-session-viewer
+Icon=org.kde.claudesessionviewer
+Terminal=false
+Categories=Development;Utility;Qt;KDE;
+Keywords=claude;ai;session;log;viewer;
+StartupNotify=true
+StartupWMClass=claude-session-viewer
+X-KDE-FormFactor=desktop

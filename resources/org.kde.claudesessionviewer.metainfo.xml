@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.kde.claudesessionviewer</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Claude Session Viewer</name>
+  <summary>Native KDE viewer for Claude Code session logs</summary>
+  <description>
+    <p>
+      Claude Session Viewer reads Claude Code session logs from ~/.claude/projects/
+      and presents them in a structured, visual interface. Every file read, regex search,
+      diff applied, command run, and token consumed is reconstructed from the raw JSONL
+      logs and displayed with specialized viewers.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Full session reconstruction from JSONL logs</li>
+      <li>Cross-session full-text search with Ctrl+K command palette</li>
+      <li>Multi-pane tabbed interface</li>
+      <li>Desktop notifications for file access patterns and errors</li>
+      <li>SSH/SFTP remote session viewing</li>
+      <li>Git branch and worktree detection</li>
+      <li>Syntax-highlighted diffs and code blocks</li>
+    </ul>
+  </description>
+  <url type="homepage">https://github.com/peterbe/claude-session-viewer</url>
+  <url type="bugtracker">https://github.com/peterbe/claude-session-viewer/issues</url>
+  <launchable type="desktop-id">org.kde.claudesessionviewer.desktop</launchable>
+  <provides>
+    <binary>claude-session-viewer</binary>
+  </provides>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-02-14">
+      <description>
+        <p>Initial release with full session viewing, search, notifications, multi-pane tabs, and SSH support.</p>
+      </description>
+    </release>
+  </releases>
+</component>

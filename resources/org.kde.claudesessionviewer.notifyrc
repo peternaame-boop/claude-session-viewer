@@ -1,0 +1,9 @@
+[Global]
+IconName=org.kde.claudesessionviewer
+Comment=Claude Session Viewer
+Name=Claude Session Viewer
+
+[Event/triggerMatch]
+Name=Trigger Matched
+Comment=A notification trigger pattern was matched in a session
+Action=Popup
