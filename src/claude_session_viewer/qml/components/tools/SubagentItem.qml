@@ -287,14 +287,15 @@ Rectangle {
                 }
             }
 
-            // Nested subagents (recursive support)
+            // Nested subagents (via Loader to avoid recursive instantiation)
             Repeater {
                 model: process ? (process.subagents || []) : []
 
-                SubagentItem {
+                Loader {
                     required property var modelData
                     Layout.fillWidth: true
-                    process: modelData
+                    source: "SubagentItem.qml"
+                    onLoaded: item.process = modelData
                 }
             }
         }

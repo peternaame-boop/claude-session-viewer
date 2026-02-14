@@ -2,13 +2,12 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import com.claude.viewer 1.0
 
 QQC2.Popup {
     id: palette
 
     // Center horizontally, offset from top
-    parent: Overlay.overlay
+    parent: QQC2.Overlay.overlay
     x: Math.round((parent.width - width) / 2)
     y: Math.round(parent.height * 0.15)
     width: Math.min(600, parent.width - Kirigami.Units.gridUnit * 4)

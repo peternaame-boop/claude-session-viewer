@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import com.claude.viewer 1.0
 
 RowLayout {
     id: tabBarRoot

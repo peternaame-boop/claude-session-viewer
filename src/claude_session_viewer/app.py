@@ -6,7 +6,7 @@ import signal
 from pathlib import Path
 
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtQml import QQmlApplicationEngine, qmlRegisterSingletonInstance
+from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtCore import QUrl
 from PySide6.QtNetwork import QLocalSocket, QLocalServer
 
@@ -22,9 +22,6 @@ from claude_session_viewer.models.conversation_model import ConversationModel
 from claude_session_viewer.models.search_result_model import SearchResultModel
 
 QML_DIR = Path(__file__).parent / "qml"
-URI = "com.claude.viewer"
-VERSION_MAJOR = 1
-VERSION_MINOR = 0
 SOCKET_NAME = "claude-session-viewer-instance"
 
 
@@ -101,17 +98,20 @@ def run() -> int:
         lambda: search_engine.set_projects_root(manager._projects_root)
     )
 
-    # Register as QML singletons
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "SessionManager", manager)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "ProjectModel", project_model)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "SessionModel", session_model)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "ConversationModel", conversation_model)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "SearchEngine", search_engine)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "SearchResultModel", search_result_model)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "NotificationManager", notification_manager)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "PaneManager", pane_manager)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "SshManager", ssh_manager)
-    qmlRegisterSingletonInstance(URI, VERSION_MAJOR, VERSION_MINOR, "ConfigManager", config_manager)
+    # Expose backend objects to QML via context properties.
+    # Using setContextProperty avoids qmlRegisterSingletonInstance which triggers
+    # PySide6's bundled Qt type system, causing ABI conflicts with system Kirigami.
+    ctx = engine.rootContext()
+    ctx.setContextProperty("SessionManager", manager)
+    ctx.setContextProperty("ProjectModel", project_model)
+    ctx.setContextProperty("SessionModel", session_model)
+    ctx.setContextProperty("ConversationModel", conversation_model)
+    ctx.setContextProperty("SearchEngine", search_engine)
+    ctx.setContextProperty("SearchResultModel", search_result_model)
+    ctx.setContextProperty("NotificationManager", notification_manager)
+    ctx.setContextProperty("PaneManager", pane_manager)
+    ctx.setContextProperty("SshManager", ssh_manager)
+    ctx.setContextProperty("ConfigManager", config_manager)
 
     # Load QML
     qml_file = QML_DIR / "Main.qml"

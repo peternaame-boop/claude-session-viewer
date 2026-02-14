@@ -2,11 +2,10 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import com.claude.viewer 1.0
 import "components/search" as Search
 import "components/notifications" as Notifications
 import "components/settings" as Settings
-import "components/layout" as Layout
+import "components/layout" as AppLayout
 import "components/common" as Common
 
 Kirigami.ApplicationWindow {
